@@ -8,9 +8,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        gold: "#FFD700", // Adjust the hex value for your desired shade of gold
       },
+    },
+    fontFamily: {
+      sans: ["Poppins", "sans-serif"],
+      sans2: ["Bricolage Grotesque", "sans-serif"],
+      serif: ["Merriweather", "serif"],
     },
   },
   plugins: [],
