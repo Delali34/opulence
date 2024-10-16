@@ -1,10 +1,13 @@
 "use client";
+
 import { useState } from "react";
 import { BiSearch, BiUser, BiShoppingBag } from "react-icons/bi";
+import { useSession, signIn, signOut } from "next-auth/react";
+import Link from "next/link";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-
+  const { data: session } = useSession();
   return (
     <nav className="bg-black border-b font-sans2 sticky top-0 z-50 border-gray-700">
       <div className="max-w-[1380px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,7 +40,18 @@ export default function Navbar() {
           {/* Icons */}
           <div className="hidden md:flex items-center space-x-4">
             <BiSearch className="h-6 w-6 text-white hover:text-gold" />
-            <BiUser className="h-6 w-6 text-white hover:text-gold" />
+            {session ? (
+              <button
+                onClick={() => signOut()}
+                className="text-white hover:text-gold"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <Link href="/api/auth/signin">
+                <BiUser className="h-6 w-6 text-white hover:text-gold" />
+              </Link>
+            )}
             <BiShoppingBag className="h-6 w-6 text-white hover:text-gold" />
           </div>
 
@@ -68,7 +82,7 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+        className={`md:hidden ... ${
           isOpen ? "menu-enter-active" : "menu-enter"
         }`}
       >
@@ -103,7 +117,18 @@ export default function Navbar() {
 
             <div className="px-4 py-3 border-t border-gray-700 flex items-center justify-around">
               <BiSearch className="h-6 w-6 text-white hover:text-gold" />
-              <BiUser className="h-6 w-6 text-white hover:text-gold" />
+              {session ? (
+                <button
+                  onClick={() => signOut()}
+                  className="text-white hover:text-gold"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <Link href="/api/auth/signin">
+                  <BiUser className="h-6 w-6 text-white hover:text-gold" />
+                </Link>
+              )}
               <BiShoppingBag className="h-6 w-6 text-white hover:text-gold" />
             </div>
           </div>

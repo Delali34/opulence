@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { BiStar, BiHeart, BiShoppingBag } from "react-icons/bi";
 import { FaEye } from "react-icons/fa";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const products = [
   {
@@ -72,6 +74,17 @@ const products = [
 
 export default function Trends() {
   const [selectedTab, setSelectedTab] = useState("Best Seller Product");
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleAddToCart = () => {
+    if (!session) {
+      router.push("/api/auth/signin");
+    } else {
+      // Add to cart logic here
+      console.log("Added to cart");
+    }
+  };
 
   return (
     <div className="bg-[#f7f7f7] font-sans2 py-10">
@@ -118,7 +131,10 @@ export default function Trends() {
                 <button className="p-2 mr-2 bg-gray-200 rounded-full hover:bg-gray-300">
                   <BiHeart className="w-5 h-5 text-gray-500" />
                 </button>
-                <button className="p-2 bg-gray-200 rounded-full hover:bg-gray-300">
+                <button
+                  onClick={handleAddToCart}
+                  className="p-2 bg-gray-200 rounded-full hover:bg-gray-300"
+                >
                   <BiShoppingBag className="w-5 h-5 text-gray-500" />
                 </button>
                 <button className="p-2 ml-2 bg-gray-200 rounded-full hover:bg-gray-300">
