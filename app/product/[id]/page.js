@@ -28,6 +28,9 @@ export default function ProductDetails() {
     };
 
     fetchProduct();
+
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
   }, [id]);
 
   if (loading) {
@@ -63,7 +66,7 @@ export default function ProductDetails() {
                 alt={product.name}
                 width={500}
                 height={700}
-                className="w-full h-[700px] object-cover"
+                className="w-full lg:h-[700px] md:h-[600px] h-[450px] object-cover"
               />
             </div>
           </div>

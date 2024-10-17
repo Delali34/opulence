@@ -3,6 +3,8 @@ import React from "react";
 import Image from "@/components/Image";
 import Services from "@/components/Service";
 import Footer from "@/components/Footer";
+import { motion } from "framer-motion";
+
 const NecktieShape = ({ className, color }) => (
   <svg
     className={className}
@@ -30,22 +32,45 @@ const MessageComponent = () => {
     "#8E44AD",
   ];
 
+  const fadeInUpVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
     <section className="bg-[#FFF9F2] relative overflow-hidden pt-16">
       <div className="max-w-4xl font-sans2 mx-auto px-4 text-center relative z-10">
-        <h1 className="md:text-4xl lg:text-5xl text-3xl font-bold mb-6">
+        <motion.h1
+          className="md:text-4xl lg:text-5xl text-3xl font-bold mb-6"
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUpVariants}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
           Premium Neckties for the Discerning Professional
-        </h1>
-        <p className="text-lg mb-8">
+        </motion.h1>
+        <motion.p
+          className="text-lg mb-8"
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUpVariants}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
           A premium necktie manufacturing business, catering to
           fashion-conscious professionals and businesses. Our expertise lies in
           crafting custom-made neckties and complementary accessories, tailored
           to our clients' unique needs and preferences.
-        </p>
-        <div className="inline-block">
+        </motion.p>
+        <motion.div
+          className="inline-block"
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUpVariants}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
           <p className="text-2xl font-script mb-1">Derrick</p>
           <p className="text-sm">Founder & CEO</p>
-        </div>
+        </motion.div>
       </div>
 
       {/* Static Necktie Shapes */}
@@ -57,18 +82,10 @@ const MessageComponent = () => {
         className="absolute top-1/4 right-0 w-80 h-80 rotate-45 opacity-30"
         color={tieColors[1]}
       />
-      {/* <NecktieShape
-        className="absolute bottom-0 left-1/4 w-72 h-72 rotate-12 opacity-30"
-        color={tieColors[2]}
-      /> */}
       <NecktieShape
         className="absolute top-1/2 left-1/3 w-56 h-56 -rotate-30 opacity-30"
         color={tieColors[3]}
       />
-      {/* <NecktieShape
-        className="absolute bottom-1/4 right-1/4 w-68 h-68 rotate-20 opacity-30"
-        color={tieColors[4]}
-      /> */}
       <NecktieShape
         className="absolute top-3/4 left-2/3 w-60 h-60 -rotate-15 opacity-30"
         color={tieColors[5]}
