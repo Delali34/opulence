@@ -1,90 +1,43 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BiStar, BiHeart, BiShoppingBag } from "react-icons/bi";
 import { FaEye } from "react-icons/fa";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-
-const products = [
-  {
-    id: 1,
-    image: "/image1.jpg", // Replace with your image paths
-    name: "Striped Crest-Patch Roll Neck T-shirt",
-    brand: "Polo Ralph Lauren",
-    price: "$122.00",
-    rating: 4.0,
-  },
-  {
-    id: 2,
-    image: "/image2.jpg",
-    name: "Striped Crest-Patch Roll Neck T-shirt",
-    brand: "Polo Ralph Lauren",
-    price: "$122.00",
-    rating: 4.0,
-  },
-  {
-    id: 3,
-    image: "/image3.jpg",
-    name: "Striped Crest-Patch Roll Neck T-shirt",
-    brand: "Polo Ralph Lauren",
-    price: "$122.00",
-    rating: 4.0,
-  },
-  {
-    id: 4,
-    image: "/image2.jpg",
-    name: "Striped Crest-Patch Roll Neck T-shirt",
-    brand: "Polo Ralph Lauren",
-    price: "$122.00",
-    rating: 4.0,
-  },
-  {
-    id: 5,
-    image: "/image3.jpg",
-    name: "Striped Crest-Patch Roll Neck T-shirt",
-    brand: "Polo Ralph Lauren",
-    price: "$122.00",
-    rating: 4.0,
-  },
-  {
-    id: 1,
-    image: "/image1.jpg", // Replace with your image paths
-    name: "Striped Crest-Patch Roll Neck T-shirt",
-    brand: "Polo Ralph Lauren",
-    price: "$122.00",
-    rating: 4.0,
-  },
-  {
-    id: 2,
-    image: "/image2.jpg",
-    name: "Striped Crest-Patch Roll Neck T-shirt",
-    brand: "Polo Ralph Lauren",
-    price: "$122.00",
-    rating: 4.0,
-  },
-  {
-    id: 3,
-    image: "/image3.jpg",
-    name: "Striped Crest-Patch Roll Neck T-shirt",
-    brand: "Polo Ralph Lauren",
-    price: "$122.00",
-    rating: 4.0,
-  },
-];
+import { useCart } from "./CartContext";
+import Link from "next/link";
 
 export default function Trends() {
   const [selectedTab, setSelectedTab] = useState("Best Seller Product");
-  const { data: session } = useSession();
-  const router = useRouter();
+  const { addToCart } = useCart();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleAddToCart = () => {
-    if (!session) {
-      router.push("/api/auth/signin");
-    } else {
-      // Add to cart logic here
-      console.log("Added to cart");
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("/api/products");
+      const data = await res.json();
+      setProducts(data.data);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleAddToCart = (product) => {
+    addToCart(product);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gold"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#f7f7f7] font-sans2 py-10">
@@ -93,25 +46,6 @@ export default function Trends() {
           Trending Neckties
         </h2>
 
-        {/* Tabs */}
-        <div className="flex justify-center space-x-8 mb-8">
-          {["New Product", "Best Seller Product", "Featured Product"].map(
-            (tab) => (
-              <button
-                key={tab}
-                onClick={() => setSelectedTab(tab)}
-                className={`md:text-lg text-sm font-medium pb-2 ${
-                  selectedTab === tab
-                    ? "text-[#d32d27] border-b-2 border-[#d32d27]"
-                    : "text-gray-700"
-                } hover:text-[#d32d27]`}
-              >
-                {tab}
-              </button>
-            )
-          )}
-        </div>
-
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {products.map((product) => (
@@ -119,9 +53,8 @@ export default function Trends() {
               key={product.id}
               className="relative group bg-white p-4 border rounded-md"
             >
-              {/* Product Image */}
               <img
-                src={product.image}
+                src={product.image_url}
                 alt={product.name}
                 className="w-full h-[320px] object-cover mb-4"
               />
@@ -132,7 +65,7 @@ export default function Trends() {
                   <BiHeart className="w-5 h-5 text-gray-500" />
                 </button>
                 <button
-                  onClick={handleAddToCart}
+                  onClick={() => handleAddToCart(product)}
                   className="p-2 bg-gray-200 rounded-full hover:bg-gray-300"
                 >
                   <BiShoppingBag className="w-5 h-5 text-gray-500" />
@@ -145,11 +78,13 @@ export default function Trends() {
               {/* Product Info */}
               <div className="mt-2">
                 <p className="text-sm text-gray-500">{product.brand}</p>
-                <h3 className="text-md font-semibold text-gray-800">
-                  {product.name}
-                </h3>
+                <Link href={`/product/${product.id}`}>
+                  <h2 className="text-xl font-bold text-indigo-800 mb-2">
+                    {product.name}
+                  </h2>
+                </Link>
                 <p className="text-md font-bold text-gray-800">
-                  {product.price}
+                  ${product.price}
                 </p>
 
                 {/* Rating */}
