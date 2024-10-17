@@ -24,7 +24,7 @@ export default function HeroSection() {
         {/* Left Section - Text */}
         <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start justify-center space-y-6 lg:space-y-4 text-center lg:text-left">
           <button className="bg-white text-black px-4 py-2 rounded-md text-sm lg:text-xs font-medium">
-            Get Up To 30% Off
+            Get Up To 20% Off
           </button>
           <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-gold">
             Discover Your <br /> Favourite <br /> Collection.
