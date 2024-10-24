@@ -2,7 +2,7 @@ import React from "react";
 
 const Scrolltext = () => {
   return (
-    <div className="text-wrapper font-sans2 font-hero">
+    <div className="text-wrapper font-luxury font-hero">
       <h1 className="uppercase text-wrapper2 lg:text-[36px] text-[24px]">
         ✨ The Perfect Finish for Every Outfit ✨
       </h1>

@@ -1,34 +1,39 @@
+// app/api/products/route.js
 import { NextResponse } from "next/server";
 import { query } from "@/utils/db";
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const result = await query("SELECT * FROM products");
-    return NextResponse.json({ success: true, data: result.rows });
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 400 }
-    );
-  }
-}
+    const { searchParams } = new URL(request.url);
+    const categoryId = searchParams.get("category");
 
-export async function POST(request) {
-  try {
-    const { name, brand, price, description, image_url, rating } =
-      await request.json();
-    const result = await query(
-      "INSERT INTO products (name, brand, price, description, image_url, rating) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [name, brand, price, description, image_url, rating]
-    );
-    return NextResponse.json(
-      { success: true, data: result.rows[0] },
-      { status: 201 }
-    );
+    let sql = `
+      SELECT 
+        p.*,
+        c.name as category_name
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+    `;
+
+    const params = [];
+    if (categoryId) {
+      sql += " WHERE p.category_id = $1";
+      params.push(categoryId);
+    }
+
+    sql += " ORDER BY p.created_at DESC";
+
+    const result = await query(sql, params);
+
+    return NextResponse.json({
+      success: true,
+      data: result.rows,
+    });
   } catch (error) {
+    console.error("Error fetching products:", error);
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 400 }
+      { status: 500 }
     );
   }
 }

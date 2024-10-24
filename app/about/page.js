@@ -73,24 +73,6 @@ const MessageComponent = () => {
         </motion.div>
       </div>
 
-      {/* Static Necktie Shapes */}
-      <NecktieShape
-        className="absolute top-0 left-0 w-64 h-64 -rotate-12 opacity-30"
-        color={tieColors[0]}
-      />
-      <NecktieShape
-        className="absolute top-1/4 right-0 w-80 h-80 rotate-45 opacity-30"
-        color={tieColors[1]}
-      />
-      <NecktieShape
-        className="absolute top-1/2 left-1/3 w-56 h-56 -rotate-30 opacity-30"
-        color={tieColors[3]}
-      />
-      <NecktieShape
-        className="absolute top-3/4 left-2/3 w-60 h-60 -rotate-15 opacity-30"
-        color={tieColors[5]}
-      />
-
       <Image />
       <Services />
       <Footer />

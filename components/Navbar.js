@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { BiSearch, BiUser, BiShoppingBag } from "react-icons/bi";
-import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import { useCart } from "./CartContext";
+import Image from "next/image";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: session } = useSession();
   const { cartItemsCount } = useCart();
 
   return (
@@ -17,44 +16,33 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <a href="/">
-              <span className="md:text-3xl text-2xl font-serif text-gold">
-                Opulence
+            <Link href="/">
+              <span className="md:text-xl font-script text-sm text-gold">
+                OpulenceTies
               </span>
-            </a>
+            </Link>
           </div>
 
           {/* Menu Items - Hidden on mobile */}
           <div className="hidden md:flex space-x-8">
-            <a href="/" className="text-white hover:text-gold">
+            <Link href="/" className="text-white hover:text-gold">
               Home
-            </a>
-            <a href="/about" className="text-white hover:text-gold">
+            </Link>
+            <Link href="/about" className="text-white hover:text-gold">
               About Us
-            </a>
-            <a href="/shop" className="text-white hover:text-gold">
+            </Link>
+            <Link href="/shop" className="text-white hover:text-gold">
               Shop
-            </a>
-            <a href="/contact" className="text-white hover:text-gold">
+            </Link>
+            <Link href="/contact" className="text-white hover:text-gold">
               Contact
-            </a>
+            </Link>
           </div>
 
           {/* Icons - Visible on all screen sizes */}
           <div className="flex items-center space-x-4">
             <BiSearch className="h-6 w-6 text-white hover:text-gold cursor-pointer" />
-            {session ? (
-              <button
-                onClick={() => signOut()}
-                className="text-white hover:text-gold"
-              >
-                Sign Out
-              </button>
-            ) : (
-              <Link href="/api/auth/signin">
-                <BiUser className="h-6 w-6 text-white hover:text-gold" />
-              </Link>
-            )}
+            <BiUser className="h-6 w-6 text-white hover:text-gold cursor-pointer" />
             <div className="relative">
               <BiShoppingBag className="h-6 w-6 text-white hover:text-gold cursor-pointer" />
               {cartItemsCount > 0 && (
@@ -99,30 +87,30 @@ export default function Navbar() {
         } bg-black border-t border-gray-700`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1">
-          <a
+          <Link
             href="/"
             className="block px-3 py-2 rounded-md text-base font-medium text-white hover:text-gold"
           >
             Home
-          </a>
-          <a
+          </Link>
+          <Link
             href="/about"
             className="block px-3 py-2 rounded-md text-base font-medium text-white hover:text-gold"
           >
             About us
-          </a>
-          <a
+          </Link>
+          <Link
             href="/shop"
             className="block px-3 py-2 rounded-md text-base font-medium text-white hover:text-gold"
           >
             Shop
-          </a>
-          <a
+          </Link>
+          <Link
             href="/contact"
             className="block px-3 py-2 rounded-md text-base font-medium text-white hover:text-gold"
           >
             Contact
-          </a>
+          </Link>
         </div>
       </div>
     </nav>

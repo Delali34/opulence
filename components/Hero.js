@@ -4,32 +4,86 @@ import Image from "next/image";
 
 export default function HeroSection() {
   // Array of images to cycle through
-  const images = ["/image1.jpg", "/image2.jpg", "/image3.jpg"]; // Ensure these are in the 'public/images' directory
+  const images = ["/image1.jpg", "/image2.jpg", "/image3.jpg"];
+  const collections = ["Collection", "Neckties", "Products"];
 
-  // State to track the current image index
+  // State to track the current image and text index and initial load
   const [currentImage, setCurrentImage] = useState(0);
+  const [currentText, setCurrentText] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Automatically change images every 5 seconds
+  // Set isLoaded to true after component mounts
+  useEffect(() => {
+    setIsLoaded(true);
+  }, []);
+
+  // Automatically change images and text every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImage((prevImage) => (prevImage + 1) % images.length);
+      setCurrentImage((prev) => (prev + 1) % images.length);
+      setCurrentText((prev) => (prev + 1) % collections.length);
     }, 5000);
 
     return () => clearInterval(interval);
   }, [images.length]);
 
   return (
-    <div className=" bg-black">
-      <section className="max-w-[1380px] mx-auto  font-sans2 text-white flex flex-col lg:flex-row items-center justify-between h-screen px-6 py-8 ">
-        {/* Left Section - Text */}
-        <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start justify-center space-y-6 lg:space-y-4 text-center lg:text-left">
-          <button className="bg-white text-black px-4 py-2 rounded-md text-sm lg:text-xs font-medium">
-            Get Up To 20% Off
+    <div className="relative h-[700px] w-full overflow-hidden">
+      {/* Background Images */}
+      {images.map((image, index) => (
+        <div
+          key={index}
+          className={`absolute inset-0 transition-all duration-[2000ms] transform ${
+            index === currentImage
+              ? "opacity-100 scale-110"
+              : "opacity-0 scale-100"
+          }`}
+        >
+          <Image
+            src={image}
+            alt={`Background ${index + 1}`}
+            fill
+            className="object-cover"
+            priority={index === 0}
+          />
+        </div>
+      ))}
+
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/70" />
+
+      {/* Content */}
+      <div className="relative h-full max-w-[1380px] mx-auto px-6 py-8">
+        <div
+          className={`flex flex-col items-center lg:items-start justify-end h-full pb-20 transition-all duration-1000 transform ${
+            isLoaded ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+          }`}
+        >
+          <button className="bg-white text-black px-4 py-2 rounded-md text-sm lg:text-xs font-medium mb-6">
+            OFFICIAL WEBSITE
           </button>
-          <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-gold">
-            Discover Your <br /> Favourite <br /> Collection.
+
+          <h1 className="text-4xl lg:text-5xl font-extrabold font-luxury leading-tight text-gold text-center lg:text-left mb-8">
+            Discover Your <br /> Favourite <br />
+            <span className="relative inline-block w-full">
+              {collections.map((text, index) => (
+                <span
+                  key={text}
+                  className={`absolute lg:left-0 left-9 transition-all duration-500 transform ${
+                    index === currentText
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-8"
+                  }`}
+                >
+                  {text}.
+                </span>
+              ))}
+              {/* Invisible text to maintain height */}
+              <span className="invisible">Collection.</span>
+            </span>
           </h1>
-          <button className="mt-8 lg:mt-6 bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-md flex items-center space-x-2 text-lg lg:text-base">
+
+          <button className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-md flex items-center space-x-2 text-lg lg:text-base">
             <svg
               className="w-6 h-6 lg:w-5 lg:h-5"
               fill="none"
@@ -47,32 +101,7 @@ export default function HeroSection() {
             <span>Shop Now</span>
           </button>
         </div>
-
-        {/* Divider Line */}
-        <div className="h-[2px] w-full bg-gray-400 my-6 lg:hidden"></div>
-        <div className="hidden lg:block h-4/5 w-[1px] bg-gray-400 mx-8"></div>
-
-        {/* Right Section - Fading Image */}
-        <div className="w-full lg:w-1/2 relative h-full flex items-center justify-center">
-          {images.map((image, index) => (
-            <div
-              key={index}
-              className={`absolute lg:p-20 inset-0 transition-opacity duration-1000 flex justify-center items-center ${
-                index === currentImage ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <Image
-                src={image}
-                alt={`Fashion ${index + 1}`}
-                width={1001}
-                height={667}
-                className="w-full h-full object-cover"
-                priority={index === currentImage}
-              />
-            </div>
-          ))}
-        </div>
-      </section>
+      </div>
     </div>
   );
 }

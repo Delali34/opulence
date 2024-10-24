@@ -8,13 +8,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        gold: "#FFD700", // Adjust the hex value for your desired shade of gold
+        gold: "#FFD700",
       },
     },
     fontFamily: {
       sans: ["Poppins", "sans-serif"],
       sans2: ["Bricolage Grotesque", "sans-serif"],
       serif: ["Merriweather", "serif"],
+      script: ["Eyesome Script", "cursive"],
+      luxury: ["Rollgates Luxury", "serif"], // Added the new font
     },
   },
   plugins: [],
