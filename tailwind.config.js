@@ -1,3 +1,4 @@
+// tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -10,14 +11,27 @@ module.exports = {
       colors: {
         gold: "#FFD700",
       },
+      animation: {
+        kenburns: "kenburns 20s ease infinite",
+      },
+      keyframes: {
+        kenburns: {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.1)" },
+          "100%": { transform: "scale(1)" },
+        },
+      },
     },
     fontFamily: {
       sans: ["Poppins", "sans-serif"],
       sans2: ["Bricolage Grotesque", "sans-serif"],
       serif: ["Merriweather", "serif"],
       script: ["Eyesome Script", "cursive"],
-      luxury: ["Rollgates Luxury", "serif"], // Added the new font
+      luxury: ["Rollgates Luxury", "serif"],
     },
   },
-  plugins: [],
+  plugins: [
+    require("@tailwindcss/aspect-ratio"),
+    require("@tailwindcss/forms"),
+  ],
 };

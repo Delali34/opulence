@@ -3,28 +3,142 @@
 import { useState, useEffect } from "react";
 import { useCart } from "@/components/CartContext";
 import Link from "next/link";
-import { FaShoppingCart, FaRegSadTear } from "react-icons/fa";
-import { motion } from "framer-motion";
+import {
+  FaShoppingCart,
+  FaRegSadTear,
+  FaFilter,
+  FaSort,
+  FaTimes,
+  FaChevronDown,
+} from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
-// Skeleton loader component
+// Constants
+const sortOptions = [
+  { label: "Newest", value: "newest" },
+  { label: "Price: Low to High", value: "price_asc" },
+  { label: "Price: High to Low", value: "price_desc" },
+  { label: "Name: A-Z", value: "name_asc" },
+  { label: "Name: Z-A", value: "name_desc" },
+];
+
+const filterOptions = [
+  "Bandanas",
+  "Long sleeves",
+  "Men",
+  "Shirts",
+  "Short sleeves",
+  "socks",
+  "Zip-up shirts",
+];
+
 const CategorySkeleton = () => (
   <div className="animate-pulse">
-    <div className="h-[300px] bg-gray-200 mb-8"></div>
     <div className="max-w-7xl mx-auto px-4">
-      <div className="h-8 bg-gray-200 w-1/3 mb-8"></div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-gray-100 h-[400px] rounded-lg"></div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-10">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="bg-gray-100 h-[400px]">
+            <div className="h-[300px] bg-gray-200 mb-4"></div>
+            <div className="px-4">
+              <div className="h-4 bg-gray-200 w-3/4 mb-2"></div>
+              <div className="h-4 bg-gray-200 w-1/2"></div>
+            </div>
+          </div>
         ))}
       </div>
     </div>
   </div>
 );
 
+const SortDropdown = ({ value, onChange }) => (
+  <select
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="ml-auto bg-transparent text-sm text-gray-600 focus:outline-none cursor-pointer"
+  >
+    {sortOptions.map((option) => (
+      <option key={option.value} value={option.value}>
+        {option.label}
+      </option>
+    ))}
+  </select>
+);
+
+const ProductCard = ({ product }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="group"
+  >
+    <div className="relative aspect-[3/4] mb-4">
+      <Image
+        src={product.image_url || "/placeholder.png"}
+        alt={product.name}
+        layout="fill"
+        objectFit="cover"
+        className="transition-transform duration-300"
+      />
+    </div>
+    <div className="text-center">
+      <h3 className="text-sm uppercase tracking-wider mb-2 font-sans2">
+        {product.name}
+      </h3>
+      <div className="flex items-center justify-center gap-3 text-sm">
+        <span className="text-gray-400 line-through">
+          $
+          {product.original_price ||
+            (parseFloat(product.price) * 1.2).toFixed(2)}
+        </span>
+        <span className="text-red-500">
+          ${parseFloat(product.price).toFixed(2)}
+        </span>
+      </div>
+    </div>
+  </motion.div>
+);
+
+const MobileFilters = ({ isOpen, onClose, activeFilter, setActiveFilter }) => (
+  <AnimatePresence>
+    {isOpen && (
+      <motion.div
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        className="fixed inset-y-0 right-0 w-full max-w-xs bg-white shadow-xl z-50"
+      >
+        <div className="flex items-center justify-between p-4 border-b">
+          <h3 className="text-lg font-medium">Filters</h3>
+          <button onClick={onClose} className="p-2">
+            <FaTimes className="text-gray-500" />
+          </button>
+        </div>
+        <div className="p-4">
+          {filterOptions.map((option) => (
+            <button
+              key={option}
+              onClick={() => {
+                setActiveFilter(activeFilter === option ? null : option);
+                onClose();
+              }}
+              className="block w-full text-left px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+);
+
 export default function CategoryPage({ params }) {
   const [categoryData, setCategoryData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortBy, setSortBy] = useState("newest");
+  const [activeFilter, setActiveFilter] = useState(null);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -33,8 +147,6 @@ export default function CategoryPage({ params }) {
         setLoading(true);
         setError(null);
 
-        console.log("Fetching category data for slug:", params.slug);
-
         const response = await fetch(`/api/categories/byslug/${params.slug}`, {
           method: "GET",
           headers: {
@@ -42,19 +154,14 @@ export default function CategoryPage({ params }) {
           },
         });
 
-        // Log the raw response for debugging
-        console.log("Response status:", response.status);
-
-        // Try to get the response text first
         const text = await response.text();
-
-        // Try to parse it as JSON
         let result;
+
         try {
           result = JSON.parse(text);
         } catch (e) {
           console.error("Failed to parse JSON response:", text);
-          throw new Error("Invalid JSON response from server");
+          throw new Error("Invalid server response");
         }
 
         if (!response.ok) {
@@ -67,15 +174,10 @@ export default function CategoryPage({ params }) {
           throw new Error(result.error || "Failed to fetch category data");
         }
 
-        console.log("Category data fetched successfully:", result.data);
-
-        // Ensure products array exists
-        const categoryWithProducts = {
+        setCategoryData({
           ...result.data,
           products: result.data.products || [],
-        };
-
-        setCategoryData(categoryWithProducts);
+        });
       } catch (error) {
         console.error("Error fetching category:", error);
         setError(error.message);
@@ -88,6 +190,30 @@ export default function CategoryPage({ params }) {
       fetchCategoryData();
     }
   }, [params.slug]);
+
+  const filterProducts = (products) => {
+    if (!activeFilter) return products;
+    return products.filter(
+      (product) => product.type?.toLowerCase() === activeFilter.toLowerCase()
+    );
+  };
+
+  const sortProducts = (products) => {
+    return [...products].sort((a, b) => {
+      switch (sortBy) {
+        case "price_asc":
+          return a.price - b.price;
+        case "price_desc":
+          return b.price - a.price;
+        case "name_asc":
+          return a.name.localeCompare(b.name);
+        case "name_desc":
+          return b.name.localeCompare(a.name);
+        default:
+          return new Date(b.created_at) - new Date(a.created_at);
+      }
+    });
+  };
 
   if (loading) return <CategorySkeleton />;
 
@@ -111,81 +237,90 @@ export default function CategoryPage({ params }) {
 
   if (!categoryData) return null;
 
-  const { products = [] } = categoryData;
+  const filteredAndSortedProducts = sortProducts(
+    filterProducts(categoryData.products)
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Category Header */}
-      <div className="relative h-[300px] overflow-hidden">
-        {categoryData.image_url ? (
-          <img
-            src={categoryData.image_url}
-            alt={categoryData.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-r from-gray-700 to-gray-900" />
-        )}
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-          <div className="text-center text-white">
-            <h1 className="text-4xl font-bold mb-4">{categoryData.name}</h1>
-            <p className="text-lg max-w-2xl mx-auto px-4">
-              {categoryData.description}
-            </p>
+    <div className="min-h-screen bg-white">
+      {/* Breadcrumb */}
+      <div className="max-w-7xl mx-auto px-4 py-4 border-b">
+        <nav className="text-sm">
+          <Link href="/" className="text-gray-500 hover:text-gray-900">
+            Home
+          </Link>
+          <span className="mx-2 text-gray-400">/</span>
+          <Link
+            href="/categories"
+            className="text-gray-500 hover:text-gray-900"
+          >
+            Categories
+          </Link>
+          <span className="mx-2 text-gray-400">/</span>
+          <span className="text-gray-900">{categoryData.name}</span>
+        </nav>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row">
+          {/* Filters - Desktop */}
+          <div className="hidden md:block w-48 flex-shrink-0">
+            <h2 className="text-sm font-medium mb-4">FILTERS</h2>
+            <div className="space-y-2">
+              {filterOptions.map((option) => (
+                <button
+                  key={option}
+                  onClick={() =>
+                    setActiveFilter(activeFilter === option ? null : option)
+                  }
+                  className={`block w-full text-left py-1 text-sm transition-colors ${
+                    activeFilter === option
+                      ? "text-gray-900 font-medium"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 md:pl-8">
+            {/* Mobile Filter & Sort Controls */}
+            <div className="md:hidden flex justify-between items-center mb-4">
+              <button
+                onClick={() => setShowMobileFilters(true)}
+                className="text-sm text-gray-600 flex items-center gap-2"
+              >
+                <FaFilter />
+                Filters
+              </button>
+              <SortDropdown value={sortBy} onChange={setSortBy} />
+            </div>
+
+            {/* Desktop Sort */}
+            <div className="hidden md:flex justify-end mb-6">
+              <SortDropdown value={sortBy} onChange={setSortBy} />
+            </div>
+
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-10">
+              {filteredAndSortedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Products Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {products.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
-              >
-                <div className="relative aspect-w-1 aspect-h-1">
-                  <img
-                    src={product.image_url || "/placeholder.png"}
-                    alt={product.name}
-                    className="w-full h-64 object-cover"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-                  <p className="text-gray-600 mb-4">{product.brand}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold text-indigo-600">
-                      ${parseFloat(product.price).toFixed(2)}
-                    </span>
-                    <button
-                      onClick={() => addToCart(product)}
-                      className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition-colors flex items-center gap-2"
-                    >
-                      <FaShoppingCart />
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <FaRegSadTear className="mx-auto text-6xl text-gray-400 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              No Products Available
-            </h2>
-            <p className="text-gray-600">
-              There are currently no products in this category.
-            </p>
-          </div>
-        )}
-      </div>
+      {/* Mobile Filters */}
+      <MobileFilters
+        isOpen={showMobileFilters}
+        onClose={() => setShowMobileFilters(false)}
+        activeFilter={activeFilter}
+        setActiveFilter={setActiveFilter}
+      />
     </div>
   );
 }

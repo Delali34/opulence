@@ -14,8 +14,6 @@ const page = () => {
       <Scrolltext />
       <Trends />
       <Scrolltext2 />
-      <Blog />
-      <Footer />
     </div>
   );
 };

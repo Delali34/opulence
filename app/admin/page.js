@@ -56,8 +56,16 @@ export default function AdminDashboard() {
     try {
       const res = await fetch("/api/products");
       const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to fetch products");
+      }
+
       if (data.success) {
+        console.log("Fetched products:", data.data); // Debug log
         setProducts(data.data || []);
+      } else {
+        throw new Error(data.error || "Failed to fetch products");
       }
     } catch (error) {
       console.error("Failed to fetch products:", error);
@@ -115,12 +123,33 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       let image_url = currentProduct.image_url;
+
+      // Handle image upload if exists
       if (image) {
-        const uploadRes = await handleImageUpload(image);
-        image_url = uploadRes.url;
+        try {
+          const uploadRes = await handleImageUpload(image);
+          if (uploadRes.url) {
+            image_url = uploadRes.url;
+          } else {
+            throw new Error("Failed to upload image");
+          }
+        } catch (uploadError) {
+          console.error("Image upload error:", uploadError);
+          throw new Error("Failed to upload image");
+        }
       }
 
-      const productData = { ...currentProduct, image_url };
+      // Prepare product data
+      const productData = {
+        ...currentProduct,
+        price: parseFloat(currentProduct.price) || 0,
+        rating: parseFloat(currentProduct.rating) || 0,
+        image_url,
+      };
+
+      // Log the request data
+      console.log("Submitting product data:", productData);
+
       const url = currentProduct.id
         ? `/api/products/${currentProduct.id}`
         : "/api/products";
@@ -128,25 +157,57 @@ export default function AdminDashboard() {
 
       const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify(productData),
       });
 
-      if (response.ok) {
-        setIsProductModalOpen(false);
-        setCurrentProduct({
-          name: "",
-          brand: "",
-          price: "",
-          description: "",
-          rating: "",
-          category_id: "",
-        });
-        setImage(null);
-        fetchProducts();
+      // Log raw response for debugging
+      const responseText = await response.text();
+      console.log("Raw API response:", responseText);
+
+      // Try to parse the response
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse response:", parseError);
+        throw new Error("Invalid server response");
       }
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to save product");
+      }
+
+      // Reset form and refresh products
+      setIsProductModalOpen(false);
+      setCurrentProduct({
+        name: "",
+        brand: "",
+        price: "",
+        description: "",
+        rating: "",
+        category_id: "",
+        image_url: "",
+      });
+      setImage(null);
+      if (typeof fetchProducts === "function") {
+        await fetchProducts();
+      }
+
+      return result;
     } catch (error) {
-      console.error("Error saving product:", error);
+      console.error("Error in handleProductSubmit:", error);
+      alert(error.message || "Failed to save product");
+      throw error;
     }
   };
 

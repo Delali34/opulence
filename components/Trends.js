@@ -177,7 +177,7 @@ export default function Trends() {
                 onClick={() => handleCategoryClick(category)}
                 className="cursor-pointer"
               >
-                <div className="relative h-[600px] group overflow-hidden rounded-lg shadow-lg">
+                <div className="relative h-[600px] group overflow-hidden md:rounded-lg shadow-lg">
                   {/* Image Section */}
                   <div className="relative w-full h-full">
                     {category.image_url ? (
@@ -209,11 +209,11 @@ export default function Trends() {
                           {category.description}
                         </p>
                         <div className="flex items-center justify-between">
-                          <div className="inline-flex items-center bg-white text-black px-6 py-2 text-sm uppercase tracking-wider hover:bg-gray-200 transition-colors duration-300 rounded">
+                          <div className="inline-flex items-center bg-white text-black md:px-6 px-4 py-2 sm:text-sm text-[10px] uppercase tracking-wider hover:bg-gray-200 transition-colors duration-300 rounded">
                             VIEW COLLECTION
                             <FaArrowRight className="ml-2" />
                           </div>
-                          <span className="text-gold">
+                          <span className="text-gold md:text-sm text-xs">
                             {category.product_count || 0} Products
                           </span>
                         </div>

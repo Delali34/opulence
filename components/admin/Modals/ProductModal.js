@@ -12,6 +12,7 @@ export const ProductModal = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [imagePreview, setImagePreview] = useState(null);
 
   if (!isOpen) return null;
 
@@ -29,6 +30,18 @@ export const ProductModal = ({
     } finally {
       setIsSubmitting(false);
     }
+    const handleImageChange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setImage(file);
+        // Create preview URL
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
   };
 
   return (
@@ -118,6 +131,15 @@ export const ProductModal = ({
             accept="image/*"
             disabled={isSubmitting}
           />
+          {imagePreview && (
+            <div className="mt-2">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-full max-h-40 object-cover rounded"
+              />
+            </div>
+          )}
           <div className="flex justify-end space-x-2">
             <button
               type="button"
