@@ -14,8 +14,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
-// Constants
-const sortOptions = [
+// Updated Constants
+const filterOptions = [
   { label: "Newest", value: "newest" },
   { label: "Price: Low to High", value: "price_asc" },
   { label: "Price: High to Low", value: "price_desc" },
@@ -23,16 +23,7 @@ const sortOptions = [
   { label: "Name: Z-A", value: "name_desc" },
 ];
 
-const filterOptions = [
-  "Bandanas",
-  "Long sleeves",
-  "Men",
-  "Shirts",
-  "Short sleeves",
-  "socks",
-  "Zip-up shirts",
-];
-
+// Components
 const CategorySkeleton = () => (
   <div className="animate-pulse">
     <div className="max-w-7xl mx-auto px-4">
@@ -57,7 +48,7 @@ const SortDropdown = ({ value, onChange }) => (
     onChange={(e) => onChange(e.target.value)}
     className="ml-auto bg-transparent text-sm text-gray-600 focus:outline-none cursor-pointer"
   >
-    {sortOptions.map((option) => (
+    {filterOptions.map((option) => (
       <option key={option.value} value={option.value}>
         {option.label}
       </option>
@@ -101,33 +92,75 @@ const ProductCard = ({ product }) => (
 const MobileFilters = ({ isOpen, onClose, activeFilter, setActiveFilter }) => (
   <AnimatePresence>
     {isOpen && (
-      <motion.div
-        initial={{ x: "100%" }}
-        animate={{ x: 0 }}
-        exit={{ x: "100%" }}
-        className="fixed inset-y-0 right-0 w-full max-w-xs bg-white shadow-xl z-50"
-      >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="text-lg font-medium">Filters</h3>
-          <button onClick={onClose} className="p-2">
-            <FaTimes className="text-gray-500" />
-          </button>
-        </div>
-        <div className="p-4">
-          {filterOptions.map((option) => (
-            <button
-              key={option}
-              onClick={() => {
-                setActiveFilter(activeFilter === option ? null : option);
-                onClose();
-              }}
-              className="block w-full text-left px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-            >
-              {option}
-            </button>
-          ))}
-        </div>
-      </motion.div>
+      <>
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        />
+
+        {/* Bottom Sheet */}
+        <motion.div
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "100%" }}
+          transition={{ type: "spring", damping: 25, stiffness: 500 }}
+          className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 max-h-[80vh] overflow-auto"
+        >
+          {/* Handle bar for better UX */}
+          <div className="flex justify-center p-2">
+            <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+          </div>
+
+          <div className="px-6 pt-2 pb-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-medium">Filters</h3>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <FaTimes className="text-gray-500" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+              {filterOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    setActiveFilter(
+                      activeFilter === option.value ? null : option.value
+                    );
+                    onClose();
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                    activeFilter === option.value
+                      ? "bg-gray-900 text-white"
+                      : "bg-gray-100 text-gray-900 hover:bg-gray-200"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            {activeFilter && (
+              <button
+                onClick={() => {
+                  setActiveFilter(null);
+                  onClose();
+                }}
+                className="w-full mt-4 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Clear Filter
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </>
     )}
   </AnimatePresence>
 );
@@ -191,24 +224,20 @@ export default function CategoryPage({ params }) {
     }
   }, [params.slug]);
 
-  const filterProducts = (products) => {
+  const sortAndFilterProducts = (products) => {
     if (!activeFilter) return products;
-    return products.filter(
-      (product) => product.type?.toLowerCase() === activeFilter.toLowerCase()
-    );
-  };
 
-  const sortProducts = (products) => {
     return [...products].sort((a, b) => {
-      switch (sortBy) {
+      switch (activeFilter) {
         case "price_asc":
-          return a.price - b.price;
+          return parseFloat(a.price) - parseFloat(b.price);
         case "price_desc":
-          return b.price - a.price;
+          return parseFloat(b.price) - parseFloat(a.price);
         case "name_asc":
           return a.name.localeCompare(b.name);
         case "name_desc":
           return b.name.localeCompare(a.name);
+        case "newest":
         default:
           return new Date(b.created_at) - new Date(a.created_at);
       }
@@ -237,8 +266,8 @@ export default function CategoryPage({ params }) {
 
   if (!categoryData) return null;
 
-  const filteredAndSortedProducts = sortProducts(
-    filterProducts(categoryData.products)
+  const sortedAndFilteredProducts = sortAndFilterProducts(
+    categoryData.products
   );
 
   return (
@@ -269,17 +298,19 @@ export default function CategoryPage({ params }) {
             <div className="space-y-2">
               {filterOptions.map((option) => (
                 <button
-                  key={option}
+                  key={option.value}
                   onClick={() =>
-                    setActiveFilter(activeFilter === option ? null : option)
+                    setActiveFilter(
+                      activeFilter === option.value ? null : option.value
+                    )
                   }
                   className={`block w-full text-left py-1 text-sm transition-colors ${
-                    activeFilter === option
+                    activeFilter === option.value
                       ? "text-gray-900 font-medium"
                       : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
-                  {option}
+                  {option.label}
                 </button>
               ))}
             </div>
@@ -287,7 +318,7 @@ export default function CategoryPage({ params }) {
 
           {/* Main Content */}
           <div className="flex-1 md:pl-8">
-            {/* Mobile Filter & Sort Controls */}
+            {/* Mobile Filter Controls */}
             <div className="md:hidden flex justify-between items-center mb-4">
               <button
                 onClick={() => setShowMobileFilters(true)}
@@ -296,17 +327,11 @@ export default function CategoryPage({ params }) {
                 <FaFilter />
                 Filters
               </button>
-              <SortDropdown value={sortBy} onChange={setSortBy} />
-            </div>
-
-            {/* Desktop Sort */}
-            <div className="hidden md:flex justify-end mb-6">
-              <SortDropdown value={sortBy} onChange={setSortBy} />
             </div>
 
             {/* Products Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-10">
-              {filteredAndSortedProducts.map((product) => (
+              {sortedAndFilteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
@@ -315,12 +340,15 @@ export default function CategoryPage({ params }) {
       </div>
 
       {/* Mobile Filters */}
-      <MobileFilters
-        isOpen={showMobileFilters}
-        onClose={() => setShowMobileFilters(false)}
-        activeFilter={activeFilter}
-        setActiveFilter={setActiveFilter}
-      />
+      <div className="md:hidden flex justify-between items-center mb-4">
+        {" "}
+        <MobileFilters
+          isOpen={showMobileFilters}
+          onClose={() => setShowMobileFilters(false)}
+          activeFilter={activeFilter}
+          setActiveFilter={setActiveFilter}
+        />
+      </div>
     </div>
   );
 }
